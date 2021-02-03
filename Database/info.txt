@@ -1,0 +1,2 @@
+Create a database called 'web' on phpmyadmin and
+import the zipped database file 'web.sql.zip' on to that database.
