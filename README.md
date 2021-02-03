@@ -1,1 +1,1 @@
-A Student Record System using OOP PHP
+A Student Record System using OOP PHP.
