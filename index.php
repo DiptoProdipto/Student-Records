@@ -1,12 +1,34 @@
 <?php
 
-include 'conn.php';
+    include 'conn.php';
 
-$model = new Model();
+    $database = new Database();
 
-$insert = $model->insert();
-$rows = $model->fetch();
-$search = $model->search();
+    $success_message = '';  
+
+    if(isset($_POST["submit"]))  
+    {  
+        $insert_data = array(  
+            'Name'     =>     mysqli_real_escape_string($database->conn, $_POST['name']),  
+            'PlaceOfBirth'    =>     mysqli_real_escape_string($database->conn, $_POST['place']),
+            'DateOfBirth'    =>     mysqli_real_escape_string($database->conn, $_POST['birth']),  
+        );  
+        if($database->insert('student', $insert_data))  
+        {  
+            $success_message = 'Post Inserted';  
+        }       
+    } 
+
+    if(isset($_GET["delete"]))  
+    {  
+        $where = array(  
+            'ID'     =>     $_GET["ID"]  
+        );  
+        if($database->delete("student", $where))  
+        {  
+            header("location:index.php");  
+        }  
+    }
 
 ?>
 
@@ -75,9 +97,8 @@ $search = $model->search();
 
                 <?php
 
-                    if(!empty($rows)){
-
-                        foreach($rows as $res){
+                $student_data = $database->fetch('student');  
+                foreach($student_data as $res){
     
                 ?>
 
@@ -86,13 +107,12 @@ $search = $model->search();
                         <td> <?php echo $res['Name'];  ?> </td>
                         <td> <?php echo $res['PlaceOfBirth'];  ?> </td>
                         <td> <?php echo $res['DateOfBirth'];  ?> </td>
-                        <td> <button style="background-color: red;"> <a style="color:#fff;" href="delete.php?ID=<?php echo $res['ID']; ?>" style="text-decoration: none;"> Delete </a> </button> </td>
-                        <td> <button style="background-color: green;"> <a style="color:#fff;" href="update.php?ID=<?php echo $res['ID']; ?>" style="text-decoration: none;"> Update </a> </button> </td>
+                        <td> <button style="background-color: red;"> <a href="index.php?delete=1&ID=<?php echo $res["ID"]; ?>" style="text-decoration: none; color:#fff;"> Delete </a> </button> </td>
+                        <td> <button style="background-color: green;"> <a href="update.php?ID=<?php echo $res['ID']; ?>" style="text-decoration: none; color:#fff;"> Update </a> </button> </td>
 
                     </tr>
 
                 <?php
-                    }
                 }
 
                 ?>
@@ -114,34 +134,42 @@ $search = $model->search();
 
                 </tr>
                 <?php
-                    
+
+                if(isset($_POST['submitt']))
+                {
                 
+                    $birthplace = mysqli_real_escape_string($database->conn,$_POST['opt']);
                         
-                       if(mysqli_num_rows($search)>0){
-                            while($row = mysqli_fetch_assoc($search)){
-                                $id = $row['ID'];
-                                $name = $row['Name'];
-                                $place = $row['PlaceOfBirth'];
-                                $date = $row['DateOfBirth'];
-                            ?>
-                            <tr style="background-color: black;">
-                                <td><?php echo $id;?></td>
-                                <td><?php echo $name;?></td>
-                                <td><?php echo $place;?></td>
-                                <td><?php echo $date;?></td>
-                                <td> <button style="background-color: red;"> <a href="delete.php?ID=<?php echo $row['ID']; ?>" style="text-decoration: none;color:#fff;"> Delete </a> </button> </td>
-                                <td> <button style="background-color: green;"> <a href="update.php?ID=<?php echo $row['ID']; ?>" style="text-decoration: none;color:#fff;"> Update </a> </button> </td>
-                            </tr>
-                            <?php
-                            }
+                    $query = "SELECT * FROM student WHERE PlaceOfBirth = '$birthplace'";
+                    
+                    $data = mysqli_query($database->conn,$query) or die('error');
+                    
+                    if(mysqli_num_rows($data)>0){
+                        while($row = mysqli_fetch_assoc($data)){
+                            $id = $row['ID'];
+                            $name = $row['Name'];
+                            $place = $row['PlaceOfBirth'];
+                            $date = $row['DateOfBirth'];
+                        ?>
+                        <tr style="background-color: black;">
+                            <td><?php echo $id;?></td>
+                            <td><?php echo $name;?></td>
+                            <td><?php echo $place;?></td>
+                            <td><?php echo $date;?></td>
+                            <td> <button style="background-color: red;"> <a href="index.php?delete=1&ID=<?php echo $row["ID"]; ?>" style="text-decoration: none;color:#fff;"> Delete </a> </button> </td>
+                            <td> <button style="background-color: green;"> <a href="update.php?ID=<?php echo $row['ID']; ?>" style="text-decoration: none;color:#fff;"> Update </a> </button> </td>
+                        </tr>
+                        <?php
                         }
-                        else{
-                            ?>
-                            <tr style="background-color: black;">
-                                <td colspan='6'>Records not found</td>
-                            </tr>
-                            <?php
-                        }
+                    }
+                    else{
+                        ?>
+                        <tr style="background-color: black;">
+                            <td colspan='6'>Records not found</td>
+                        </tr>
+                        <?php
+                    }
+                }
                 
                 ?>
             </table>

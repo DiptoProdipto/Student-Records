@@ -1,99 +1,94 @@
 <?php
 
-class Model {
+class Database {
 
     private $server = "localhost";
     private $username = "root";
     private $password = "";
     private $db = "web";
-    private $conn;
+    public $conn;
 
     public function __construct(){
         $this->conn = new mysqli($this->server, $this->username, $this->password, $this->db);
     }
 
 
-    public function insert(){
+    public function insert($table_name, $data)  
+    {  
+        $string = "INSERT INTO ".$table_name." (";            
+        $string .= implode(",", array_keys($data)) . ') VALUES (';            
+        $string .= "'" . implode("','", array_values($data)) . "')";  
+        if(mysqli_query($this->conn, $string))  
+        {  
+            return true;  
+        }  
+        else  
+        {  
+            echo mysqli_error($this->conn);  
+        }  
+    } 
 
-        if(isset($_POST['submit'])){
-            if(isset($_POST['name']) && isset($_POST['place']) && isset($_POST['birth'])){
-                if(!empty($_POST['name']) && !empty($_POST['place']) && !empty($_POST['birth'])){
-                    $name = $_POST['name'];
-                    $place = $_POST['place'];
-                    $birth = $_POST['birth'];
 
-                    $query = "INSERT INTO student(Name, PlaceOfBirth, DateOfBirth) VALUES('$name','$place','$birth')";
+    public function fetch($table_name){
 
-                    if($sql = $this->conn->query($query)){
-                        echo "<script>alert('records added successfully');</script>";
-						echo "<script>window.location.href = 'index.php';</script>";
-                    }
-
-                }
-            }
-        }
-    
-    }
-
-    public function fetch(){
-
-        $data = null;
-
-        $query = "SELECT * FROM student";
-
-        if($sql = $this->conn->query($query)){
-            while($row = mysqli_fetch_assoc($sql)){
-                $data[] =$row;
-            }
-        }
-
-        return $data;
+        $array = array();  
+        $query = "SELECT * FROM ".$table_name."";  
+        $result = mysqli_query($this->conn, $query);  
+        while($row = mysqli_fetch_assoc($result))  
+        {  
+            $array[] = $row;  
+        }  
+        return $array;
 
     }
 
-    public function delete($id){
-        $query = "DELETE FROM student WHERE ID = '$id'";
-        if($sql = $this->conn->query($query)){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
 
-    public function update($id){
-        if(isset($_POST['update'])){
+    public function update($table_name, $fields, $where_condition)  
+    {  
+        $query = '';  
+        $condition = '';  
+        foreach($fields as $key => $value)  
+        {  
+            $query .= $key . "='".$value."', ";  
+        }  
+        $query = substr($query, 0, -2);  
+        /*This code will convert array to string like this-  
+        input - array(  
+            'key1'     =>     'value1',  
+            'key2'     =>     'value2'  
+        )  
+        output = key1 = 'value1', key2 = 'value2'*/  
+        foreach($where_condition as $key => $value)  
+        {  
+            $condition .= $key . "='".$value."' AND ";  
+        }  
+        $condition = substr($condition, 0, -5);  
+        /*This code will convert array to string like this-  
+        input - array(  
+            'id'     =>     '5'  
+        )  
+        output = id = '5'*/  
+        $query = "UPDATE ".$table_name." SET ".$query." WHERE ".$condition."";  
+        if(mysqli_query($this->conn, $query))  
+        {  
+            return true;  
+        }  
+    } 
 
-
-            $name = $_POST['name'];
-            $place = $_POST['place'];
-            $date = $_POST['date'];
-            $query = "update student set Name='$name', PlaceOfBirth='$place', DateOfBirth='$date' where ID = '$id'";
-    
-            if($sql = $this->conn->query($query)){
-
-                header('location: update.php?ID=$id');
-
-            }    
-        }
-    }
-
-    public function search(){
-        if(isset($_POST['submitt']))
-        {
-
-            $birthplace = $this->conn->$this->mysqli->real_escape_string($_POST['opt']);
-                
-            $query = "SELECT * FROM student WHERE PlaceOfBirth = '$birthplace'";
-
-            if($data = $this->conn->query($query)){
-                return $data;
-            }
-        }
-        
+    public function delete($table_name, $where_condition)  
+    {  
+        $condition = '';  
+        foreach($where_condition as $key => $value)  
+        {  
+            $condition .= $key . " = '".$value."' AND ";  
+             
+            $condition = substr($condition, 0, -5);  
+            $query = "DELETE FROM ".$table_name." WHERE ".$condition."";  
+            if(mysqli_query($this->conn, $query))  
+            {  
+                    return true;  
+            }  
+        }  
     }
 
 }
-
-
-?>
